@@ -15,6 +15,9 @@ st.set_page_config(
 if "events" not in st.session_state:
     st.session_state.events = []
 
+if "show_bill_confirm" not in st.session_state:
+    st.session_state.show_bill_confirm = False
+
 # -----------------------------
 # HEADER WITH LOGO
 # -----------------------------
@@ -51,12 +54,11 @@ buffer = st.number_input(
 st.divider()
 
 # -----------------------------
-# SECTION 2 — BILLS & INCOME
+# SECTION 2 — BILLS
 # -----------------------------
 st.markdown("### What’s already coming")
 st.caption("Bills and income you expect no matter what.")
 
-# ---- Bills ----
 st.markdown("**Bills**")
 
 bill_name = st.text_input(
@@ -76,15 +78,48 @@ bill_date = st.date_input(
     key="bill_date"
 )
 
-if st.button("Add bill"):
+if st.button("📤 Transfer bill to simulation"):
     if bill_amount > 0:
-        st.session_state.events.append({
-            "date": bill_date,
-            "amount": -bill_amount,
-            "label": bill_name or "Bill"
-        })
+        st.session_state.show_bill_confirm = True
 
-# ---- Income ----
+# -----------------------------
+# BILL CONFIRMATION DIALOG
+# -----------------------------
+if st.session_state.show_bill_confirm:
+    with st.dialog("Confirm bill transfer"):
+        st.write(
+            "You're about to add this bill to the simulation timeline.\n\n"
+            "Once confirmed, it will appear below under **Upcoming items** "
+            "for visual confirmation."
+        )
+
+        st.write(
+            f"**Bill:** {bill_name or 'Bill'}  \n"
+            f"**Amount:** ${bill_amount:,.2f}  \n"
+            f"**Due date:** {bill_date}"
+        )
+
+        col_send, col_cancel = st.columns(2)
+
+        with col_send:
+            if st.button("✅ Send"):
+                st.session_state.events.append({
+                    "date": bill_date,
+                    "amount": -bill_amount,
+                    "label": bill_name or "Bill"
+                })
+                st.session_state.show_bill_confirm = False
+                st.success("Bill added to simulation.")
+
+        with col_cancel:
+            if st.button("❌ Cancel"):
+                st.session_state.show_bill_confirm = False
+
+st.divider()
+
+# -----------------------------
+# INCOME
+# -----------------------------
 st.markdown("**Income**")
 
 income_name = st.text_input(
@@ -104,7 +139,7 @@ income_date = st.date_input(
     key="income_date"
 )
 
-if st.button("Add income"):
+if st.button("➕ Add income to simulation"):
     if income_amount > 0:
         st.session_state.events.append({
             "date": income_date,
@@ -115,7 +150,7 @@ if st.button("Add income"):
 st.divider()
 
 # -----------------------------
-# SECTION 3 — OPTIONAL PURCHASE
+# OPTIONAL PURCHASE
 # -----------------------------
 st.markdown("### Thinking about a purchase?")
 st.caption("Optional — just to see the impact. Nothing is saved.")
@@ -182,7 +217,6 @@ if st.button("Simulate"):
 
         st.divider()
 
-        # Status + explanation
         if lowest_balance >= buffer:
             st.success("You stay above your safety buffer. This looks manageable.")
             summary = f"You remain safe through {lowest_date}."
@@ -204,7 +238,7 @@ if st.button("Simulate"):
         )
 
 # -----------------------------
-# LOCKED FEATURE (MONETIZATION SIGNAL)
+# LOCKED FEATURE
 # -----------------------------
 st.divider()
 st.markdown("### Coming soon")
