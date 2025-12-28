@@ -1,4 +1,3 @@
-import os
 import streamlit as st
 from datetime import date
 
@@ -24,10 +23,12 @@ col1, col2 = st.columns([1, 6])
 with col1:
     st.image("logo.jpg", width=60)
 
-
 with col2:
     st.title("Financial Safety Simulator")
-    st.caption("See how timing affects your money before bills hit.")
+    st.caption(
+        "Most financial stress comes from timing — not totals. "
+        "This tool helps you see that before it happens."
+    )
 
 # -----------------------------
 # SECTION 1 — CURRENT SITUATION
@@ -140,7 +141,7 @@ if consider_amount > 0:
 st.divider()
 
 # -----------------------------
-# EVENT PREVIEW (CLARITY)
+# EVENT PREVIEW
 # -----------------------------
 if st.session_state.events:
     st.markdown("### Upcoming items")
@@ -183,36 +184,16 @@ if st.button("Simulate"):
 
         # Status + explanation
         if lowest_balance >= buffer:
-            st.success(
-                "You stay above your safety buffer. "
-                "This looks manageable."
-            )
-            date_text = lowest_date if lowest_date else "your next income"
-            summary = (
-                f"You are safe until {date_text}, "
-                "assuming nothing else changes."
-            )
+            st.success("You stay above your safety buffer. This looks manageable.")
+            summary = f"You remain safe through {lowest_date}."
 
         elif lowest_balance > 0:
-            st.warning(
-                "This gets tight before your next income."
-            )
-            date_text = lowest_date if lowest_date else "soon"
-            summary = (
-                f"Things become tight around {date_text} "
-                "unless something changes."
-            )
+            st.warning("This gets tight before your next income.")
+            summary = f"Things become tight around {lowest_date}."
 
         else:
-            st.error(
-                "This would push your balance below zero "
-                "before money arrives."
-            )
-            date_text = lowest_date if lowest_date else "soon"
-            summary = (
-                f"You would run into trouble on {date_text} "
-                "unless something changes."
-            )
+            st.error("This would push your balance below zero before money arrives.")
+            summary = f"You would run into trouble around {lowest_date}."
 
         st.markdown("### Summary")
         st.write(summary)
@@ -221,3 +202,15 @@ if st.button("Simulate"):
             "This app doesn’t move money or track anything. "
             "It only shows what would happen based on timing."
         )
+
+# -----------------------------
+# LOCKED FEATURE (MONETIZATION SIGNAL)
+# -----------------------------
+st.divider()
+st.markdown("### Coming soon")
+
+if st.button("💾 Save this scenario"):
+    st.info(
+        "🔒 Saving scenarios will be available in a future version.\n\n"
+        "This will let you compare decisions over time."
+    )
