@@ -15,8 +15,8 @@ st.set_page_config(
 if "events" not in st.session_state:
     st.session_state.events = []
 
-if "show_bill_confirm" not in st.session_state:
-    st.session_state.show_bill_confirm = False
+if "confirm_bill" not in st.session_state:
+    st.session_state.confirm_bill = False
 
 # -----------------------------
 # HEADER WITH LOGO
@@ -78,42 +78,45 @@ bill_date = st.date_input(
     key="bill_date"
 )
 
+# STEP 1 — Trigger confirmation
 if st.button("📤 Transfer bill to simulation"):
     if bill_amount > 0:
-        st.session_state.show_bill_confirm = True
+        st.session_state.confirm_bill = True
+    else:
+        st.warning("Enter a bill amount first.")
 
-# -----------------------------
-# BILL CONFIRMATION DIALOG
-# -----------------------------
-if st.session_state.show_bill_confirm:
-    with st.dialog("Confirm bill transfer"):
-        st.write(
-            "You're about to add this bill to the simulation timeline.\n\n"
-            "Once confirmed, it will appear below under **Upcoming items** "
-            "for visual confirmation."
-        )
+# STEP 2 — Confirmation UI (SAFE replacement for dialog)
+if st.session_state.confirm_bill:
+    st.warning("### Confirm bill transfer")
 
-        st.write(
-            f"**Bill:** {bill_name or 'Bill'}  \n"
-            f"**Amount:** ${bill_amount:,.2f}  \n"
-            f"**Due date:** {bill_date}"
-        )
+    st.write(
+        "You’re about to add this bill to the simulation timeline.\n\n"
+        "Once confirmed, it will appear below under **Upcoming items** "
+        "for visual confirmation."
+    )
 
-        col_send, col_cancel = st.columns(2)
+    st.write(
+        f"**Bill:** {bill_name or 'Bill'}  \n"
+        f"**Amount:** ${bill_amount:,.2f}  \n"
+        f"**Due date:** {bill_date}"
+    )
 
-        with col_send:
-            if st.button("✅ Send"):
-                st.session_state.events.append({
-                    "date": bill_date,
-                    "amount": -bill_amount,
-                    "label": bill_name or "Bill"
-                })
-                st.session_state.show_bill_confirm = False
-                st.success("Bill added to simulation.")
+    col_confirm, col_cancel = st.columns(2)
 
-        with col_cancel:
-            if st.button("❌ Cancel"):
-                st.session_state.show_bill_confirm = False
+    with col_confirm:
+        if st.button("✅ Confirm & send"):
+            st.session_state.events.append({
+                "date": bill_date,
+                "amount": -bill_amount,
+                "label": bill_name or "Bill"
+            })
+            st.session_state.confirm_bill = False
+            st.success("Bill transferred to simulation.")
+
+    with col_cancel:
+        if st.button("❌ Cancel"):
+            st.session_state.confirm_bill = False
+            st.info("Transfer cancelled.")
 
 st.divider()
 
